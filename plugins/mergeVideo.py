@@ -192,8 +192,10 @@ chat_id=cb.from_user.id, message_ids=list_message_ids ):
             img.resize((320, height))
         elif height > width:
             img.resize((width, 320))
-        img.save(video_thumbnail)
-        Image.open(video_thumbnail).convert("RGB").save(video_thumbnail, "JPEG")
+        img.convert("RGB")
+        img.save(video_thumbnail,"JPEG")
+        img.close()  # close .nfs mountss
+        # Image.open(video_thumbnail).convert("RGB").save(video_thumbnail, "JPEG")
     except:
         await delete_all(root=f"downloads/{str(cb.from_user.id)}")
         queueDB.update({cb.from_user.id: {"videos": [], "subtitles": [], "audios": []}})

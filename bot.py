@@ -638,7 +638,7 @@ async def showQueue(c: Client, cb: CallbackQuery):
 
 async def delete_all(root):
     try:
-        shutil.rmtree(root)
+        shutil.rmtree(root,ignore_errors=True)
     except Exception as e:
         LOGGER.info(e)
 

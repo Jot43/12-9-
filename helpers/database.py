@@ -2,12 +2,12 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from pyrogram.types import CallbackQuery
 from config import Config
-from __init__ import LOGGER, MERGE_MODE
+from __init__ import LOGGER, MERGE_MODE, LOCAL_SETTINGS_DB, RCLONE_LOCAL_DB
 
 
-class Database(object):
-    client = MongoClient(Config.DATABASE_URL)
-    mergebot = client.MergeBot
+# class Database(object):
+#    client = MongoClient(Config.DATABASE_URL)
+#    mergebot = client.MergeBot
 
 
 async def addUser(uid, fname, lname):
@@ -74,39 +74,42 @@ async def addUserRcloneConfig(cb: CallbackQuery, fileId):
     try:
         await cb.message.edit("Adding file to DB")
         uid = cb.from_user.id
-        Database.mergebot.rcloneData.insert_one({"_id": uid, "rcloneFileId": fileId})
+        RCLONE_LOCAL_DB.update({uid: {"_id": uid, "rcloneFileId": fileId}})
+        # Database.mergebot.rcloneData.insert_one({"_id": uid, "rcloneFileId": fileId})
     except Exception as err:
         LOGGER.info("Updating rclone")
         await cb.message.edit("Updating file in DB")
         uid = cb.from_user.id
-        Database.mergebot.rcloneData.replace_one({"_id": uid}, {"rcloneFileId": fileId})
+        RCLONE_LOCAL_DB.update({uid: {"_id": uid, "rcloneFileId": fileId}})
+        # Database.mergebot.rcloneData.replace_one({"_id": uid}, {"rcloneFileId": fileId})
     await cb.message.edit("Done")
     return
 
 
 async def getUserRcloneConfig(uid):
     try:
-        res = Database.mergebot.rcloneData.find_one({"_id": uid})
+        # res = Database.mergebot.rcloneData.find_one({"_id": uid})
+        res = RCLONE_LOCAL_DB.get(uid)
         return res["rcloneFileId"]
     except Exception as err:
         return None
 
 
 def getUserMergeSettings(uid: int):
-    try:
-        res_cur = Database.mergebot.mergeSettings.find_one({"_id": uid})
-        return res_cur
-    except Exception as e:
-        LOGGER.info(e)
+    if LOCAL_SETTINGS_DB.get(uid) is None:
+        LOGGER.info(f"{uid} Not found")
         return None
+    return LOCAL_SETTINGS_DB.get(uid)
 
 
-def setUserMergeSettings(uid: int, name: str, mode, edit_metadata, banned, allowed, thumbnail):
+def setUserMergeSettings(
+    uid: int, name: str, mode, edit_metadata, banned, allowed, thumbnail
+):
     modes = Config.MODES
     if uid:
-        try:
-            Database.mergebot.mergeSettings.insert_one(
-                document={
+        LOCAL_SETTINGS_DB.update(
+            {
+                uid: {
                     "_id": uid,
                     "name": name,
                     "user_settings": {
@@ -117,52 +120,13 @@ def setUserMergeSettings(uid: int, name: str, mode, edit_metadata, banned, allow
                     "isBanned": banned,
                     "thumbnail": thumbnail,
                 }
+            }
+        )
+        LOGGER.info(
+            "User {} - {}Settings updated: {}".format(
+                uid, name, LOCAL_SETTINGS_DB.get(uid)
             )
-            LOGGER.info("User {} Mode updated to {}".format(uid, modes[mode - 1]))
-        except Exception:
-            Database.mergebot.mergeSettings.replace_one(
-                filter={"_id": uid},
-                replacement={
-                    "name": name,
-                    "user_settings": {
-                        "merge_mode": mode,
-                        "edit_metadata": edit_metadata,
-                    },
-                    "isAllowed": allowed,
-                    "isBanned": banned,
-                    "thumbnail": thumbnail,
-                },
-            )
-            LOGGER.info("User {} Mode updated to {}".format(uid, modes[mode - 1]))
-        MERGE_MODE[uid] = mode
-    # elif mode == 2:
-    #     try:
-    #         Database.mergebot.mergeModes.insert_one(
-    #             document={"_id": uid, modes[0]: 0, modes[1]: 1, modes[2]: 0}
-    #         )
-    #         LOGGER.info("User {} Mode updated to {}".format(uid, modes[1]))
-    #     except Exception:
-    #         rep = Database.mergebot.mergeModes.replace_one(
-    #             filter={"_id": uid},
-    #             replacement={modes[0]: 0, modes[1]: 1, modes[2]: 0},
-    #         )
-    #         LOGGER.info("User {} Mode updated to {}".format(uid, modes[1]))
-    #     MERGE_MODE[uid] = 2
-    #     # Database.mergebot.mergeModes.delete_many({'id':uid})
-    # elif mode == 3:
-    #     try:
-    #         Database.mergebot.mergeModes.insert_one(
-    #             document={"_id": uid, modes[0]: 0, modes[1]: 0, modes[2]: 1}
-    #         )
-    #         LOGGER.info("User {} Mode updated to {}".format(uid, modes[2]))
-    #     except Exception:
-    #         rep = Database.mergebot.mergeModes.replace_one(
-    #             filter={"_id": uid},
-    #             replacement={modes[0]: 0, modes[1]: 0, modes[2]: 1},
-    #         )
-    #         LOGGER.info("User {} Mode updated to {}".format(uid, modes[2]))
-    #     MERGE_MODE[uid]=3
-    LOGGER.info(MERGE_MODE)
+        )
 
 
 def enableMetadataToggle(uid: int, value: bool):
