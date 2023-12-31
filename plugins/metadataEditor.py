@@ -8,7 +8,7 @@ from config import Config
 
 async def metaEditor(c:Client, m: Message):
     1
-    import cv2
+    import
 
 def extract_video_metadata(video_path):
     """
