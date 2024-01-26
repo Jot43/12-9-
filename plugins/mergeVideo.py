@@ -26,6 +26,14 @@ async def mergeNow(c: Client, cb: CallbackQuery, new_file_name: str):
     sub_list = list()
     sIndex = 0
     await cb.message.edit("⭕ Processing...")
+    reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
+                ]
+            ),
+        )
+        return
     duration = 0
     list_message_ids = queueDB.get(cb.from_user.id)["videos"]
     list_message_ids.sort()
@@ -48,6 +56,14 @@ chat_id=cb.from_user.id, message_ids=list_message_ids ):
         media = i.video or i.document
         await cb.message.edit(f"📥 Starting Download of ... `{media.file_name}`")
         LOGGER.info(f"📥 Starting Download of ... {media.file_name}")
+        reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
+                ]
+            ),
+        )
+        return
         await asyncio.sleep(5)
         file_dl_path = None
         sub_dl_path = None
@@ -65,6 +81,14 @@ chat_id=cb.from_user.id, message_ids=list_message_ids ):
                 return
             await cb.message.edit(f"Downloaded Sucessfully ... `{media.file_name}`")
             LOGGER.info(f"Downloaded Sucessfully ... {media.file_name}")
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
+                ]
+            ),
+        )
+        return
             await asyncio.sleep(5)
         except UnknownError as e:
             LOGGER.info(e)
@@ -123,6 +147,14 @@ chat_id=cb.from_user.id, message_ids=list_message_ids ):
         return
     try:
         await cb.message.edit("✅ Sucessfully Merged Video !")
+        reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
+                ]
+            ),
+        )
+        return
     except MessageNotModified:
         await cb.message.edit("Sucessfully Merged Video ! ✅")
     LOGGER.info(f"Video merged for: {cb.from_user.first_name} ")
@@ -131,6 +163,14 @@ chat_id=cb.from_user.id, message_ids=list_message_ids ):
     os.rename(merged_video_path, new_file_name)
     await cb.message.edit(
         f"🔄 Renamed Merged Video to\n **{new_file_name.rsplit('/',1)[-1]}**"
+        reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
+                ]
+            ),
+        )
+        return
     )
     await asyncio.sleep(3)
     merged_video_path = new_file_name
