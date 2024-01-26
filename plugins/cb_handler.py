@@ -265,6 +265,7 @@ async def callback_handler(c: Client, cb: CallbackQuery):
                                 InlineKeyboardButton(
                                     "❌ Remove File",
                                     callback_data=f"removeFile_{str(m.id)}",
+                                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
                                 ),
                                 InlineKeyboardButton(
                                     "❌ Remove Subtitle",
@@ -284,10 +285,12 @@ async def callback_handler(c: Client, cb: CallbackQuery):
                                 InlineKeyboardButton(
                                     "❌ Remove File",
                                     callback_data=f"removeFile_{str(m.id)}",
+                                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
                                 ),
                                 InlineKeyboardButton(
                                     "❌ Remove Subtitle",
                                     callback_data=f"removeSub_{str(sIndex)}",
+                                    [InlineKeyboardButton("⛔ Cancel ⛔", callback_data="cancel")],
                                 ),
                             ],
                             [InlineKeyboardButton("🔙 Back", callback_data="back")],
