@@ -341,6 +341,10 @@ async def files_handler(c: Client, m: Message):
             len(queueDB.get(user_id)["videos"]) >= 1
             and currentFileNameExt in AUDIO_EXTENSIONS
         ):
+        elif (
+            len(queueDB.get(user_id)["videos"]) >= 1
+            and currentFileNameExt in AUDIO_EXTENSIONS
+        ):
             queueDB.get(user_id)["audios"].append(m.id)
             if replyDB.get(user_id, None) is not None:
                 await c.delete_messages(
